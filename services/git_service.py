@@ -1,5 +1,4 @@
 from github import Github
-from github import GithubException
 from services.env_service import EnvService
 
 class GitService:

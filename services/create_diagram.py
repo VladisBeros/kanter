@@ -1,8 +1,6 @@
-import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import pandas as pd
 import seaborn as sns
-
 
 class CreateDiagram:
     @staticmethod
@@ -16,7 +14,8 @@ class CreateDiagram:
             'first_commit_date': None,
             'last_commit_date': None,
             'commit_frequency': None,
-            'most_changed_files': {}
+            'most_changed_files': {},
+            'commits_by_date': []
         }
 
         commits = list(repo.get_commits(author=login))
@@ -24,16 +23,25 @@ class CreateDiagram:
         if not commits:
             return data
 
-        data['total_commits'] = len(commits)    # Всего комитов
-        data['first_commit_date'] = commits[-1].commit.author.date  # Дата первого комита
-        data['last_commit_date'] = commits[0].commit.author.date    # Дата последнего комита
+        data['total_commits'] = len(commits)
+        data['first_commit_date'] = commits[-1].commit.author.date
+        data['last_commit_date'] = commits[0].commit.author.date
 
         for commit in commits:
             stats = commit.stats
+            commit_date = commit.commit.author.date.date()
+
+            data['commits_by_date'].append({
+                'date': commit_date,
+                'additions': stats.additions,
+                'deletions': stats.deletions,
+                'changes': stats.additions + stats.deletions
+            })
+
             data['total_lines_added'] += stats.additions
             data['total_lines_deleted'] += stats.deletions
 
-            # Анализ файлов
+            # Rest of your existing file analysis code...
             for file in commit.files:
                 filename = file.filename
                 if filename not in data['most_changed_files']:
@@ -41,18 +49,14 @@ class CreateDiagram:
                 data['most_changed_files'][filename] += 1
                 data['total_files_changed'] += 1
 
-            print(f"Коміт: {commit.sha}, +{stats.additions}, -{stats.deletions}")
-
         data['avg_lines_per_commit'] = round(
             (data['total_lines_added'] + data['total_lines_deleted']) / data['total_commits'],
             2
-        )   # среднее количество в комите строк
+        )
 
-        # Частота коммитов (дней между первым и последним коммитом)
         days_active = (data['last_commit_date'] - data['first_commit_date']).days
         data['commit_frequency'] = round(data['total_commits'] / max(1, days_active), 2)
 
-        # Топ-5 самых изменяемых файлов
         data['most_changed_files'] = dict(
             sorted(data['most_changed_files'].items(),
                    key=lambda item: item[1],
@@ -66,40 +70,27 @@ class CreateDiagram:
         sns.set_theme(style="whitegrid")
         figures = {}
 
-        # Частота коммитов
+        if not data.get("commits_by_date"):
+            return figures  # нет данных — ничего не строим
+
+        df = pd.DataFrame(data['commits_by_date'])
+        df = df.groupby("date").sum().reset_index()
+
         fig1 = Figure(figsize=(5, 4))
         ax1 = fig1.subplots()
-        sns.barplot(x=["Коміти/день"], y=[data['commit_frequency']], ax=ax1, color=sns.color_palette("Blues_d")[0])
-        ax1.set_title("Частота комітів")
-        figures['Частота комітів'] = fig1
+        sns.lineplot(data=df, x='date', y='changes', marker='o', ax=ax1)
+        ax1.set_title('Зміни в комітах по датам')
+        ax1.set_xlabel('Дата')
+        ax1.set_ylabel('Кількість змін (додавання та видалення)')
+        ax1.tick_params(axis='x', rotation=45)
+        fig1.tight_layout()
+        figures['changes_over_time'] = fig1
 
-        # Додано / Видалено рядків
         fig2 = Figure(figsize=(5, 4))
         ax2 = fig2.subplots()
-        sns.barplot(x=["Додано", "Видалено"], y=[data['total_lines_added'], data['total_lines_deleted']], ax=ax2,
-                    palette=sns.color_palette(["green", "red"]), legend=False)
-        ax2.set_title("Зміни рядків коду")
-        figures['Зміни рядків'] = fig2
-
-        # Середнє рядків на коміт
-        fig3 = Figure(figsize=(5, 4))
-        ax3 = fig3.subplots()
-        sns.barplot(x=["Середнє рядків/коміт"], y=[data['avg_lines_per_commit']], ax=ax3,
-                    color=sns.color_palette("Purples")[2])
-        ax3.set_title("Середнє рядків у коміті")
-        figures['Середнє на коміт'] = fig3
-
-        # Топ змінених файлів
-        if data['most_changed_files']:
-            files = list(data['most_changed_files'].keys())
-            changes = list(data['most_changed_files'].values())
-            df_files = pd.DataFrame({"Файл": files, "Кількість змін": changes})
-
-            fig4 = Figure(figsize=(6, 5))
-            ax4 = fig4.subplots()
-            sns.barplot(y="Файл", x="Кількість змін", data=df_files, ax=ax4,
-                        palette="magma", legend=False)
-            ax4.set_title("Найчастіше змінювані файли")
-            figures['Топ файлів'] = fig4
+        sns.barplot(x=["Коміти у день"], y=[data['commit_frequency']], ax=ax2,
+                    color=sns.color_palette("Blues_d")[0])
+        ax2.set_title("Частота комітів")
+        figures['commit_frequency'] = fig2
 
         return figures

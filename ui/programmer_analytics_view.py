@@ -1,6 +1,4 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
-import pandas as pd
+from tkinter import ttk
 from services.create_diagram import CreateDiagram
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 

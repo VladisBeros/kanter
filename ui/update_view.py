@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import ttk, messagebox
 from ui.contributors_view import ContributorsView
 
@@ -17,8 +16,6 @@ class UpdateView(ttk.Frame):
 
     def open_contributors(self):
         messagebox.showinfo("Оновлення", "Дані оновлюються...")
-
-        # Создаем новый фрейм для ContributorsView
-        self.destroy()  # Уничтожаем текущий фрейм
+        self.destroy()
         contributors_view = ContributorsView(self.parent, self.repo)
         contributors_view.pack(fill='both', expand=True)

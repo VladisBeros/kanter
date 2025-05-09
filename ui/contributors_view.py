@@ -10,21 +10,17 @@ class ContributorsView(ttk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        # Создаем Canvas и Scrollbar
         self.canvas = tk.Canvas(self, borderwidth=5)
         self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = ttk.Frame(self.canvas)
 
-        # Настраиваем Canvas
         self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        # Упаковываем Scrollbar и Canvas
         self.scrollbar.pack(side="right", fill="y")
         self.canvas.pack(side="left", fill="both", expand=True)
 
-        # Добавляем кнопки в scrollable_frame
         contributors = list(self.repo.get_contributors())
         logins = [c.login for c in contributors]
 
@@ -32,7 +28,7 @@ class ContributorsView(ttk.Frame):
             btn = ttk.Button(
                 self.scrollable_frame,
                 text=login,
-                command=lambda l=login: self.open_analytics(l),  # Фиксируем login через l
+                command=lambda l=login: self.open_analytics(l),
                 padding=(10, 10),
                 width=20
             )

@@ -9,17 +9,14 @@ class ConnectView(ttk.Frame):
         self.create_connect_widgets()
 
     def create_connect_widgets(self):
-        # Поле для вводу токена чи URL
         self.token_entry = ttk.Entry(self, width=50, font=("Arial", 16))
         self.token_entry.pack(pady=20)
         self.token_entry.bind("<KeyRelease>", self.check_entry)
 
-        # Поле для вводу репозіторію
         self.repo_entry = ttk.Entry(self, width=50, font=("Arial", 16))
         self.repo_entry.pack()
         self.repo_entry.bind("<KeyRelease>", self.check_entry)
 
-        # Кнопка "Підключитися"
         self.connect_button = ttk.Button(self, text="Підключитися до Git-репозиторію", command=self.connect_to_repo)
         self.connect_button.pack(pady=20)
         self.connect_button["state"] = "disabled"
