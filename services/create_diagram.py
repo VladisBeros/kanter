@@ -71,11 +71,12 @@ class CreateDiagram:
         figures = {}
 
         if not data.get("commits_by_date"):
-            return figures  # нет данных — ничего не строим
+            return figures
 
         df = pd.DataFrame(data['commits_by_date'])
         df = df.groupby("date").sum().reset_index()
 
+        # Фигура 1: Изменения по датам
         fig1 = Figure(figsize=(5, 4))
         ax1 = fig1.subplots()
         sns.lineplot(data=df, x='date', y='changes', marker='o', ax=ax1)
@@ -84,13 +85,52 @@ class CreateDiagram:
         ax1.set_ylabel('Кількість змін (додавання та видалення)')
         ax1.tick_params(axis='x', rotation=45)
         fig1.tight_layout()
-        figures['changes_over_time'] = fig1
+        figures['Зміни за весь час'] = fig1
 
+        # Фигура 2: Частота коммитов
         fig2 = Figure(figsize=(5, 4))
         ax2 = fig2.subplots()
         sns.barplot(x=["Коміти у день"], y=[data['commit_frequency']], ax=ax2,
                     color=sns.color_palette("Blues_d")[0])
         ax2.set_title("Частота комітів")
-        figures['commit_frequency'] = fig2
+        figures['Частота комітів'] = fig2
+
+        # Фигура 3: Добавленные/удаленные строки за последние 4 недели
+        fig3 = Figure(figsize=(8, 4))
+        ax3 = fig3.subplots()
+
+        # Фильтруем данные за последние 4 недели
+        end_date = pd.to_datetime('today')
+        start_date = end_date - pd.Timedelta(weeks=4)
+        last_4_weeks = df[(pd.to_datetime(df['date']) >= start_date) &
+                          (pd.to_datetime(df['date']) <= end_date)]
+
+        # Если есть данные за этот период
+        if not last_4_weeks.empty:
+            # Группируем по неделям
+            last_4_weeks['week'] = pd.to_datetime(last_4_weeks['date']).dt.to_period('W')
+            weekly_data = last_4_weeks.groupby('week').sum().reset_index()
+            weekly_data['week_str'] = weekly_data['week'].astype(str)
+
+            # Создаем stacked bar plot
+            bar_width = 0.35
+            x = range(len(weekly_data))
+
+            ax3.bar(x, weekly_data['additions'], width=bar_width, color='green', label='Додані рядки')
+            ax3.bar(x, weekly_data['deletions'], width=bar_width, color='red', label='Видалені рядки',
+                    bottom=weekly_data['additions'])
+
+            ax3.set_title('Додані та видалені рядки за останні 4 тижні')
+            ax3.set_xlabel('Тиждень')
+            ax3.set_ylabel('Кількість рядків')
+            ax3.set_xticks(x)
+            ax3.set_xticklabels(weekly_data['week_str'], rotation=45)
+            ax3.legend()
+            fig3.tight_layout()
+        else:
+            ax3.text(0.5, 0.5, 'Немає даних за останні 4 тижні',
+                     ha='center', va='center', transform=ax3.transAxes)
+
+        figures['Зміни за останні 4 тижні'] = fig3
 
         return figures

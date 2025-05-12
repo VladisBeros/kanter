@@ -14,6 +14,9 @@ class ContributorsView(ttk.Frame):
         self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.scrollable_frame = ttk.Frame(self.canvas)
 
+        back_button = ttk.Button(self, text="Повернутися до введення токену та репозиторію", command=self.go_back_to_connect)
+        back_button.pack(fill='x')
+
         self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
@@ -39,3 +42,10 @@ class ContributorsView(ttk.Frame):
         self.destroy()
         programmer_analytics_view = AnalyticsView(self.parent, login, self.repo)
         programmer_analytics_view.pack(fill='both', expand=True)
+
+    def go_back_to_connect(self):
+        from ui.connect_view import ConnectView
+
+        self.destroy()
+        connect_view = ConnectView(self.parent)
+        connect_view.pack(fill='both', expand=True)
