@@ -28,7 +28,7 @@ class ConnectView(ttk.Frame):
         self.connect_button.pack(pady=(10, 0))
         self.connect_button["state"] = "disabled"
 
-    def check_entry(self):
+    def check_entry(self, event):
         if self.token_entry.get() and self.repo_entry.get():
             self.connect_button["state"] = "normal"
         else:
