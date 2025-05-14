@@ -183,4 +183,7 @@ class CreateDiagram:
 
         figures['Зміни за останні 4 тижні (порівняння)'] = fig3
 
+        fig4 = Figure(figsize=(5, 4))
+        ax4 = fig4.subplots()
+
         return figures
