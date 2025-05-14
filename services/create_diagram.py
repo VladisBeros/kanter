@@ -99,12 +99,37 @@ class CreateDiagram:
         fig1.tight_layout()
         figures['Зміни за весь час'] = fig1
 
-        fig2 = Figure(figsize=(5, 4))
-        ax2 = fig2.subplots()
-        sns.barplot(x=["Коміти у день"], y=[data['commit_frequency']], ax=ax2,
-                    color=sns.color_palette("Blues_d")[0])
-        ax2.set_title("Частота комітів")
-        figures['Частота комітів'] = fig2
+        if data['most_changed_files']:
+            fig2 = Figure(figsize=(5, 4))
+            ax2 = fig2.subplots()
+
+            files = list(data['most_changed_files'].keys())
+            changes = list(data['most_changed_files'].values())
+
+            sorted_indices = np.argsort(changes)[::-1]
+            files = [files[i] for i in sorted_indices]
+            changes = [changes[i] for i in sorted_indices]
+
+            short_files = [f[:30] + '...' if len(f) > 30 else f for f in files]
+
+            bars = ax2.barh(short_files, changes, color=sns.color_palette("Blues_d"))
+            ax2.set_title('Найчастіше змінювані файли')
+            ax2.set_xlabel('Кількість змін')
+            ax2.set_ylabel('Файл')
+
+            for bar in bars:
+                width = bar.get_width()
+                ax2.text(width + max(changes) * 0.01, bar.get_y() + bar.get_height() / 2,
+                         f'{int(width)}', va='center')
+
+            fig2.tight_layout()
+            figures['Найчастіше змінювані файли'] = fig2
+        else:
+            fig2 = Figure(figsize=(5, 4))
+            ax2 = fig2.subplots()
+            ax2.text(0.5, 0.5, 'Немає даних про зміни файлів',
+                     ha='center', va='center', transform=ax2.transAxes)
+            figures['Найчастіше змінювані файли'] = fig2
 
         fig3 = Figure(figsize=(5, 4))
         ax3 = fig3.subplots()
@@ -119,10 +144,10 @@ class CreateDiagram:
             weekly_data = last_4_weeks.groupby('week').sum().reset_index()
             weekly_data['week_str'] = weekly_data['week'].astype(str)
 
-            print("\nДанные для графика за последние 4 недели:")
+            print("\nДані за останні 4 тиждні:")
             print(weekly_data[['week_str', 'additions', 'deletions']])
             print(
-                f"\nМаксимальные значения: Добавлено - {weekly_data['additions'].max()}, Удалено - {weekly_data['deletions'].max()}")
+                f"\nМаксимальні значення: Додано - {weekly_data['additions'].max()}, Видалено - {weekly_data['deletions'].max()}")
 
             bar_width = 0.1
             x = np.arange(len(weekly_data))

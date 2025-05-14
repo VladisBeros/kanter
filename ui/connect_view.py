@@ -1,6 +1,7 @@
 from tkinter import ttk, messagebox
 from ui.update_view import UpdateView
 from services.git_service import GitService
+from services.env_service import EnvService
 
 class ConnectView(ttk.Frame):
     def __init__(self, parent):
@@ -41,9 +42,10 @@ class ConnectView(ttk.Frame):
         connect_result = GitService.connect(token, repository)
 
         if connect_result['success']:
+            messagebox.showinfo("Успіх", f"{connect_result['message']}")
+            EnvService.save_to_env(token, repository)
             repo = connect_result['repo']
 
-            messagebox.showinfo("Успіх", f"{connect_result['message']}")
             self.destroy()
             update_view = UpdateView(self.parent, repo)
             update_view.pack(fill='both', expand=True)

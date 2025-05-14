@@ -1,19 +1,17 @@
-from dotenv import load_dotenv, set_key
+from dotenv import set_key
 import os
 
 ENV_PATH = ".env"
 
 class EnvService:
     @staticmethod
-    def load_env():
-        load_dotenv(ENV_PATH)
+    def save_to_env(token, repository):
+        if not os.path.exists(ENV_PATH):
+            with open(ENV_PATH, 'w'):
+                pass
 
-    @staticmethod
-    def get_var(key):
-        EnvService.load_env()
-        return os.getenv(key)
+        set_key(ENV_PATH, "GIT_TOKEN", f'{token}')
+        set_key(ENV_PATH, "REPO_NAME", f'{repository}')
 
-    @staticmethod
-    def set_var(key, value):
-        EnvService.load_env()
-        set_key(ENV_PATH, key, value)
+        os.environ["GIT_TOKEN"] = token
+        os.environ["REPO_NAME"] = repository
