@@ -87,8 +87,21 @@ class CreateDiagram:
             return figures
 
         df = pd.DataFrame(data['commits_by_date'])
-        df = df.groupby("date").sum().reset_index()
+        # Группируем по дате и суммируем изменения
+        df = df.groupby("date", as_index=False).agg({'changes': 'sum'})
 
+        # Преобразуем даты в datetime и находим диапазон
+        df['date'] = pd.to_datetime(df['date'])
+        min_date = df['date'].min()
+        max_date = df['date'].max()
+
+        # Создаем полный диапазон дат от первой до последней даты
+        date_range = pd.date_range(start=min_date, end=max_date, freq='D')
+        # Создаем DataFrame со всеми датами и мержим с данными
+        full_df = pd.DataFrame({'date': date_range})
+        df = full_df.merge(df, on='date', how='left').fillna(0)
+
+        # Строим график
         fig1 = Figure(figsize=(5, 4))
         ax1 = fig1.subplots()
         sns.lineplot(data=df, x='date', y='changes', marker='o', ax=ax1)
@@ -180,23 +193,5 @@ class CreateDiagram:
             print("\nНемає даних за останні 4 тижні")
             ax3.text(0.5, 0.5, 'Немає даних за останні 4 тижні',
                      ha='center', va='center', transform=ax3.transAxes)
-
-        figures['Зміни за останні 4 тижні (порівняння)'] = fig3
-
-        fig4 = Figure(figsize=(5, 4))
-        ax4 = fig4.subplots()
-
-        commit_counts_by_day = df.copy()
-        commit_counts_by_day['count'] = 1
-        daily_commit_counts = commit_counts_by_day.groupby('date')['count'].count().reset_index()
-
-        sns.barplot(data=daily_commit_counts, x='date', y='count', ax=ax4, palette='muted')
-        ax4.set_title('Гістограма активності (щоденно)')
-        ax4.set_xlabel('Дата')
-        ax4.set_ylabel('Кількість комітів')
-        ax4.tick_params(axis='x', rotation=45)
-        fig4.tight_layout()
-
-        figures['Гістограма активності (щоденно)'] = fig4
 
         return figures
