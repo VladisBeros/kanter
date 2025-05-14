@@ -11,6 +11,9 @@ class AnalyticsView(ttk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
+        back_button = ttk.Button(self, text="Повернутися до списку розробників", command=self.go_back_to_contributors)
+        back_button.pack(fill='x')
+
         label = ttk.Label(self, text=f"Аналітика праці користувача {self.login}")
         label.pack(pady=10)
 
@@ -26,3 +29,10 @@ class AnalyticsView(ttk.Frame):
             canvas.draw()
             canvas.get_tk_widget().pack(fill='both', expand=True)
             notebook.add(frame, text=title)
+
+    def go_back_to_contributors(self):
+        from ui.contributors_view import ContributorsView
+
+        self.destroy()
+        contributors_view = ContributorsView(self.parent, self.repo)
+        contributors_view.pack(fill='both', expand=True)
