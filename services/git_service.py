@@ -1,5 +1,4 @@
 from github import Github
-from services.env_service import EnvService
 
 class GitService:
     @staticmethod

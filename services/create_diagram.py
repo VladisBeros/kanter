@@ -1,5 +1,4 @@
 from github import Repository
-from datetime import datetime
 import pandas as pd
 import seaborn as sns
 from matplotlib.figure import Figure
@@ -34,7 +33,7 @@ class CreateDiagram:
                         seen_shas.add(commit.sha)
                         all_commits.append(commit)
             except Exception as e:
-                print(f"[!] Помилка при обробці гілки '{branch.name}': {e}")
+                print(f"[ERROR] Помилка при обробці гілки '{branch.name}': {e}")
 
         if not all_commits:
             return data
