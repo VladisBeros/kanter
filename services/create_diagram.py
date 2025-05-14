@@ -186,4 +186,17 @@ class CreateDiagram:
         fig4 = Figure(figsize=(5, 4))
         ax4 = fig4.subplots()
 
+        commit_counts_by_day = df.copy()
+        commit_counts_by_day['count'] = 1
+        daily_commit_counts = commit_counts_by_day.groupby('date')['count'].count().reset_index()
+
+        sns.barplot(data=daily_commit_counts, x='date', y='count', ax=ax4, palette='muted')
+        ax4.set_title('Гістограма активності (щоденно)')
+        ax4.set_xlabel('Дата')
+        ax4.set_ylabel('Кількість комітів')
+        ax4.tick_params(axis='x', rotation=45)
+        fig4.tight_layout()
+
+        figures['Гістограма активності (щоденно)'] = fig4
+
         return figures
