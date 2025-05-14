@@ -38,7 +38,6 @@ class CreateDiagram:
         if not all_commits:
             return data
 
-        # Сортуємо коміти за датою
         all_commits.sort(key=lambda c: c.commit.author.date, reverse=True)
 
         data['total_commits'] = len(all_commits)
@@ -90,7 +89,6 @@ class CreateDiagram:
         df = pd.DataFrame(data['commits_by_date'])
         df = df.groupby("date").sum().reset_index()
 
-        # Фигура 1: Изменения по датам
         fig1 = Figure(figsize=(5, 4))
         ax1 = fig1.subplots()
         sns.lineplot(data=df, x='date', y='changes', marker='o', ax=ax1)
@@ -101,7 +99,6 @@ class CreateDiagram:
         fig1.tight_layout()
         figures['Зміни за весь час'] = fig1
 
-        # Фигура 2: Частота коммитов
         fig2 = Figure(figsize=(5, 4))
         ax2 = fig2.subplots()
         sns.barplot(x=["Коміти у день"], y=[data['commit_frequency']], ax=ax2,
@@ -109,33 +106,27 @@ class CreateDiagram:
         ax2.set_title("Частота комітів")
         figures['Частота комітів'] = fig2
 
-        # Фигура 3: Добавленные/удаленные строки за последние 4 недели (столбцы рядом)
-        fig3 = Figure(figsize=(5, 4))  # Увеличим размер ещё больше
+        fig3 = Figure(figsize=(5, 4))
         ax3 = fig3.subplots()
 
-        # Фильтруем данные за последние 4 недели
         end_date = pd.to_datetime('today')
         start_date = end_date - pd.Timedelta(weeks=4)
         last_4_weeks = df[(pd.to_datetime(df['date']) >= start_date) &
                           (pd.to_datetime(df['date']) <= end_date)]
 
         if not last_4_weeks.empty:
-            # Группируем по неделям
             last_4_weeks['week'] = pd.to_datetime(last_4_weeks['date']).dt.to_period('W')
             weekly_data = last_4_weeks.groupby('week').sum().reset_index()
             weekly_data['week_str'] = weekly_data['week'].astype(str)
 
-            # Логируем данные для проверки
             print("\nДанные для графика за последние 4 недели:")
             print(weekly_data[['week_str', 'additions', 'deletions']])
             print(
                 f"\nМаксимальные значения: Добавлено - {weekly_data['additions'].max()}, Удалено - {weekly_data['deletions'].max()}")
 
-            # Позиции для столбцов
-            bar_width = 0.4  # Увеличим ширину столбцов
+            bar_width = 0.1
             x = np.arange(len(weekly_data))
 
-            # Рисуем столбцы рядом с прозрачностью
             ax3.bar(x - bar_width / 2, weekly_data['additions'], width=bar_width,
                     color='green', label='Додані рядки', alpha=0.8)
             ax3.bar(x + bar_width / 2, weekly_data['deletions'], width=bar_width,
@@ -147,11 +138,9 @@ class CreateDiagram:
             ax3.set_xticks(x)
             ax3.set_xticklabels(weekly_data['week_str'], rotation=45, ha='right')
 
-            # Настроим масштаб оси Y, если удалений мало
             y_max = max(weekly_data['additions'].max(), weekly_data['deletions'].max()) * 1.2
             ax3.set_ylim(0, y_max)
 
-            # Добавим значения поверх столбцов
             for i in range(len(weekly_data)):
                 ax3.text(x[i] - bar_width / 2, weekly_data['additions'][i] + y_max * 0.02,
                          str(weekly_data['additions'][i]), ha='center', fontsize=9)

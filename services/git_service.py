@@ -1,7 +1,9 @@
 from github import Github
+from functools import lru_cache
 
 class GitService:
     @staticmethod
+    @lru_cache(maxsize=10)
     def connect(token, repository):
         connect_result = {'message': "З'єднання успішне!", 'success': False, 'repo': None}
 
