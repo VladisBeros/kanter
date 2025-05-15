@@ -1,4 +1,4 @@
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from matplotlib.backends.backend_pdf import PdfPages
 
 class CreateReport(ttk.Frame):
@@ -13,10 +13,11 @@ class CreateReport(ttk.Frame):
 
             fig, ax = plt.subplots(figsize=(8.27, 11.69))
             ax.axis('off')
-            ax.text(0.5, 0.9, f"Аналіз роботи розробника {login}",
-                    fontsize=16, ha='center', va='top', weight='bold')
+            ax.text(0.5, 0.9, f"Аналіз роботи розробника {login}", fontsize=16, ha='center', va='top', weight='bold')
             pdf.savefig(fig)
             plt.close(fig)
 
             for fig in figures.values():
                 pdf.savefig(fig)
+
+            messagebox.showinfo("Успіх", f"Звіт про {login} успішно збережено.")

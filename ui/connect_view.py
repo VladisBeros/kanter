@@ -2,6 +2,8 @@ from tkinter import ttk, messagebox
 from ui.update_view import UpdateView
 from services.git_service import GitService
 from services.env_service import EnvService
+from dotenv import load_dotenv
+import os
 
 class ConnectView(ttk.Frame):
     def __init__(self, parent):
@@ -10,12 +12,14 @@ class ConnectView(ttk.Frame):
         self.create_connect_widgets()
 
     def create_connect_widgets(self):
+        load_dotenv()
+
         style = ttk.Style()
         style.configure("Large.TButton", font=("Arial", 16))
 
         label_token = ttk.Label(self, text="GIT токен", font=("Arial", 16))
         label_token.pack(pady=(20, 0))
-        self.token_entry = ttk.Entry(self, width=50, font=("Arial", 16))
+        self.token_entry = ttk.Entry(self, width=50, font=("Arial", 16), show="•")
         self.token_entry.pack()
         self.token_entry.bind("<KeyRelease>", self.check_entry)
 
@@ -24,6 +28,9 @@ class ConnectView(ttk.Frame):
         self.repo_entry = ttk.Entry(self, width=50, font=("Arial", 16))
         self.repo_entry.pack()
         self.repo_entry.bind("<KeyRelease>", self.check_entry)
+
+        repo_name = os.getenv("REPO_NAME", "")
+        self.repo_entry.insert(0, repo_name)
 
         self.connect_button = ttk.Button(self, text="Підключитися до Git-репозиторію", style="Large.TButton", command=self.connect_to_repo)
         self.connect_button.pack(pady=(10, 0))
