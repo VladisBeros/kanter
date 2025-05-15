@@ -30,11 +30,12 @@ class ConnectView(ttk.Frame):
         self.repo_entry.bind("<KeyRelease>", self.check_entry)
 
         repo_name = os.getenv("REPO_NAME", "")
+        git_token = os.getenv("GIT_TOKEN", "")
         self.repo_entry.insert(0, repo_name)
+        self.token_entry.insert(0, git_token)
 
         self.connect_button = ttk.Button(self, text="Підключитися до Git-репозиторію", style="Large.TButton", command=self.connect_to_repo)
         self.connect_button.pack(pady=(10, 0))
-        self.connect_button["state"] = "disabled"
 
     def check_entry(self, event):
         if self.token_entry.get() and self.repo_entry.get():

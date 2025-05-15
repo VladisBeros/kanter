@@ -96,50 +96,50 @@ class CreateDiagram:
             'changes': 'sum'
         }).reset_index()
 
-        fig1 = Figure(figsize=(5, 4))
-        ax1 = fig1.subplots()
+        first_diagram = Figure(figsize=(5, 4))
+        first_axis = first_diagram.subplots()
 
-        sns.lineplot(data=df_weekly, x='date', y='changes', marker='o', markersize=8, ax=ax1)
+        sns.lineplot(data=df_weekly, x='date', y='changes', marker='o', markersize=8, ax=first_axis)
 
         for i, row in df_weekly.iterrows():
-            ax1.text(row['date'], row['changes'] + max(df_weekly['changes']) * 0.05,
+            first_axis.text(row['date'], row['changes'] + max(df_weekly['changes']) * 0.05,
                 f"{int(row['changes'])}", ha='center', va='bottom', fontsize=9
             )
 
-        ax1.set_title('Зміни в комітах по тижням')
-        ax1.set_xlabel('Тиждень')
-        ax1.set_ylabel('Кількість змін')
-        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-        ax1.tick_params(axis='x', rotation=45)
-        fig1.tight_layout()
-        figures['Зміни по тижням'] = fig1
+        first_axis.set_title('Зміни в комітах по тижням')
+        first_axis.set_xlabel('Тиждень')
+        first_axis.set_ylabel('Кількість змін')
+        first_axis.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        first_axis.tick_params(axis='x', rotation=45)
+        first_diagram.tight_layout()
+        figures['Зміни по тижням'] = first_diagram
 
         if data['most_changed_files']:
-            fig2 = Figure(figsize=(5, 4))
-            ax2 = fig2.subplots()
+            second_diagram = Figure(figsize=(5, 4))
+            second_axis = second_diagram.subplots()
 
             files = list(data['most_changed_files'].keys())
             changes = list(data['most_changed_files'].values())
 
-            bars = ax2.barh(files, changes, color=sns.color_palette("Blues_d"))
-            ax2.set_title('Найчастіше змінювані файли')
-            ax2.set_xlabel('Кількість змін')
+            bars = second_axis.barh(files, changes, color=sns.color_palette("Blues_d"))
+            second_axis.set_title('Найчастіше змінювані файли')
+            second_axis.set_xlabel('Кількість змін')
 
             for bar in bars:
                 width = bar.get_width()
-                ax2.text(width + max(changes) * 0.01, bar.get_y() + bar.get_height() / 2,
+                second_axis.text(width + max(changes) * 0.01, bar.get_y() + bar.get_height() / 2,
                          f'{int(width)}', va='center')
 
-            fig2.tight_layout()
-            figures['Найчастіше змінювані файли'] = fig2
+            second_diagram.tight_layout()
+            figures['Найчастіше змінювані файли'] = second_diagram
         else:
-            fig2 = Figure(figsize=(5, 4))
-            ax2 = fig2.subplots()
-            ax2.text(0.5, 0.5, 'Немає даних про зміни файлів', ha='center', va='center')
-            figures['Найчастіше змінювані файли'] = fig2
+            second_diagram = Figure(figsize=(5, 4))
+            second_axis = second_diagram.subplots()
+            second_axis.text(0.5, 0.5, 'Немає даних про зміни файлів', ha='center', va='center')
+            figures['Найчастіше змінювані файли'] = second_diagram
 
-        fig3 = Figure(figsize=(5, 4))
-        ax3 = fig3.subplots()
+        third_diagram = Figure(figsize=(5, 4))
+        third_axis = third_diagram.subplots()
 
         last_4_weeks = df[df['date'] >= (pd.to_datetime('today') - pd.Timedelta(weeks=4))]
 
@@ -156,17 +156,17 @@ class CreateDiagram:
             bar_width = 0.35
             x = np.arange(len(weekly_data))
 
-            ax3.bar(x - bar_width / 2, weekly_data['additions'], width=bar_width, color='green', label='Додані рядки')
-            ax3.bar(x + bar_width / 2, weekly_data['deletions'], width=bar_width, color='red', label='Видалені рядки')
+            third_axis.bar(x - bar_width / 2, weekly_data['additions'], width=bar_width, color='green', label='Додані рядки')
+            third_axis.bar(x + bar_width / 2, weekly_data['deletions'], width=bar_width, color='red', label='Видалені рядки')
 
-            ax3.set_title('Зміни за останні 4 тижні')
-            ax3.set_xticks(x)
-            ax3.set_xticklabels(weekly_data['week_str'], rotation=45)
-            ax3.legend()
+            third_axis.set_title('Зміни за останні 4 тижні')
+            third_axis.set_xticks(x)
+            third_axis.set_xticklabels(weekly_data['week_str'], rotation=45)
+            third_axis.legend()
         else:
-            ax3.text(0.5, 0.5, 'Немає даних за останні 4 тижні', ha='center', va='center')
+            third_axis.text(0.5, 0.5, 'Немає даних за останні 4 тижні', ha='center', va='center')
 
-        fig3.tight_layout()
-        figures['Останні 4 тижні'] = fig3
+        third_diagram.tight_layout()
+        figures['Останні 4 тижні'] = third_diagram
 
         return figures

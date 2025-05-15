@@ -1,5 +1,6 @@
 from tkinter import ttk, messagebox
 from ui.contributors_view import ContributorsView
+from services.show_about_contributors import not_active_contributors
 
 class UpdateView(ttk.Frame):
     def __init__(self, parent, repo):
@@ -26,6 +27,8 @@ class UpdateView(ttk.Frame):
 
     def open_contributors(self):
         messagebox.showinfo("Оновлення", "Дані оновлюються...")
+        not_active_contributors(self.repo)
+
         self.destroy()
         contributors_view = ContributorsView(self.parent, self.repo)
         contributors_view.pack(fill='both', expand=True)
