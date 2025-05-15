@@ -1,6 +1,7 @@
 from github import Repository
 import pandas as pd
 import seaborn as sns
+import matplotlib.dates as mdates
 from matplotlib.figure import Figure
 import numpy as np
 
@@ -87,30 +88,43 @@ class CreateDiagram:
             return figures
 
         df = pd.DataFrame(data['commits_by_date'])
-        # Группируем по дате и суммируем изменения
-        df = df.groupby("date", as_index=False).agg({'changes': 'sum'})
-
-        # Преобразуем даты в datetime и находим диапазон
         df['date'] = pd.to_datetime(df['date'])
-        min_date = df['date'].min()
-        max_date = df['date'].max()
 
-        # Создаем полный диапазон дат от первой до последней даты
-        date_range = pd.date_range(start=min_date, end=max_date, freq='D')
-        # Создаем DataFrame со всеми датами и мержим с данными
-        full_df = pd.DataFrame({'date': date_range})
-        df = full_df.merge(df, on='date', how='left').fillna(0)
+        df_weekly = df.groupby(pd.Grouper(key='date', freq='W-MON')).agg({
+            'additions': 'sum',
+            'deletions': 'sum',
+            'changes': 'sum'
+        }).reset_index()
 
-        # Строим график
         fig1 = Figure(figsize=(5, 4))
         ax1 = fig1.subplots()
-        sns.lineplot(data=df, x='date', y='changes', marker='o', ax=ax1)
-        ax1.set_title('Зміни в комітах по датам')
-        ax1.set_xlabel('Дата')
-        ax1.set_ylabel('Кількість змін (додавання та видалення)')
+
+        sns.lineplot(
+            data=df_weekly,
+            x='date',
+            y='changes',
+            marker='o',
+            markersize=8,
+            ax=ax1
+        )
+
+        for i, row in df_weekly.iterrows():
+            ax1.text(
+                row['date'],
+                row['changes'] + max(df_weekly['changes']) * 0.05,
+                f"{int(row['changes'])}",
+                ha='center',
+                va='bottom',
+                fontsize=9
+            )
+
+        ax1.set_title('Зміни в комітах по тижням')
+        ax1.set_xlabel('Тиждень')
+        ax1.set_ylabel('Кількість змін')
+        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
         ax1.tick_params(axis='x', rotation=45)
         fig1.tight_layout()
-        figures['Зміни за весь час'] = fig1
+        figures['Зміни по тижням'] = fig1
 
         if data['most_changed_files']:
             fig2 = Figure(figsize=(5, 4))
@@ -119,16 +133,9 @@ class CreateDiagram:
             files = list(data['most_changed_files'].keys())
             changes = list(data['most_changed_files'].values())
 
-            sorted_indices = np.argsort(changes)[::-1]
-            files = [files[i] for i in sorted_indices]
-            changes = [changes[i] for i in sorted_indices]
-
-            short_files = [f[:30] + '...' if len(f) > 30 else f for f in files]
-
-            bars = ax2.barh(short_files, changes, color=sns.color_palette("Blues_d"))
+            bars = ax2.barh(files, changes, color=sns.color_palette("Blues_d"))
             ax2.set_title('Найчастіше змінювані файли')
             ax2.set_xlabel('Кількість змін')
-            ax2.set_ylabel('Файл')
 
             for bar in bars:
                 width = bar.get_width()
@@ -141,57 +148,41 @@ class CreateDiagram:
             fig2 = Figure(figsize=(5, 4))
             ax2 = fig2.subplots()
             ax2.text(0.5, 0.5, 'Немає даних про зміни файлів',
-                     ha='center', va='center', transform=ax2.transAxes)
+                     ha='center', va='center')
             figures['Найчастіше змінювані файли'] = fig2
 
         fig3 = Figure(figsize=(5, 4))
         ax3 = fig3.subplots()
 
-        end_date = pd.to_datetime('today')
-        start_date = end_date - pd.Timedelta(weeks=4)
-        last_4_weeks = df[(pd.to_datetime(df['date']) >= start_date) &
-                          (pd.to_datetime(df['date']) <= end_date)]
+        last_4_weeks = df[df['date'] >= (pd.to_datetime('today') - pd.Timedelta(weeks=4))]
 
         if not last_4_weeks.empty:
-            last_4_weeks['week'] = pd.to_datetime(last_4_weeks['date']).dt.to_period('W')
-            weekly_data = last_4_weeks.groupby('week').sum().reset_index()
-            weekly_data['week_str'] = weekly_data['week'].astype(str)
+            weekly_data = last_4_weeks.groupby(
+                pd.Grouper(key='date', freq='W-MON')
+            ).agg({
+                'additions': 'sum',
+                'deletions': 'sum'
+            }).reset_index()
 
-            print("\nДані за останні 4 тиждні:")
-            print(weekly_data[['week_str', 'additions', 'deletions']])
-            print(
-                f"\nМаксимальні значення: Додано - {weekly_data['additions'].max()}, Видалено - {weekly_data['deletions'].max()}")
+            weekly_data['week_str'] = weekly_data['date'].dt.strftime('%Y-%m-%d')
 
-            bar_width = 0.1
+            bar_width = 0.35
             x = np.arange(len(weekly_data))
 
             ax3.bar(x - bar_width / 2, weekly_data['additions'], width=bar_width,
-                    color='green', label='Додані рядки', alpha=0.8)
+                    color='green', label='Додані рядки')
             ax3.bar(x + bar_width / 2, weekly_data['deletions'], width=bar_width,
-                    color='red', label='Видалені рядки', alpha=0.8)
+                    color='red', label='Видалені рядки')
 
-            ax3.set_title('Додані та видалені рядки за останні 4 тижні (порівняння)', pad=20)
-            ax3.set_xlabel('Тиждень', labelpad=10)
-            ax3.set_ylabel('Кількість рядків', labelpad=10)
+            ax3.set_title('Зміни за останні 4 тижні')
             ax3.set_xticks(x)
-            ax3.set_xticklabels(weekly_data['week_str'], rotation=45, ha='right')
-
-            y_max = max(weekly_data['additions'].max(), weekly_data['deletions'].max()) * 1.2
-            ax3.set_ylim(0, y_max)
-
-            for i in range(len(weekly_data)):
-                ax3.text(x[i] - bar_width / 2, weekly_data['additions'][i] + y_max * 0.02,
-                         str(weekly_data['additions'][i]), ha='center', fontsize=9)
-                ax3.text(x[i] + bar_width / 2, weekly_data['deletions'][i] + y_max * 0.02,
-                         str(weekly_data['deletions'][i]), ha='center', fontsize=9)
-
-            ax3.legend(loc='upper right')
-            ax3.grid(axis='y', linestyle='--', alpha=0.5)
-
-            fig3.tight_layout()
+            ax3.set_xticklabels(weekly_data['week_str'], rotation=45)
+            ax3.legend()
         else:
-            print("\nНемає даних за останні 4 тижні")
             ax3.text(0.5, 0.5, 'Немає даних за останні 4 тижні',
-                     ha='center', va='center', transform=ax3.transAxes)
+                     ha='center', va='center')
+
+        fig3.tight_layout()
+        figures['Останні 4 тижні'] = fig3
 
         return figures
