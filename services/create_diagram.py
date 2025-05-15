@@ -99,23 +99,11 @@ class CreateDiagram:
         fig1 = Figure(figsize=(5, 4))
         ax1 = fig1.subplots()
 
-        sns.lineplot(
-            data=df_weekly,
-            x='date',
-            y='changes',
-            marker='o',
-            markersize=8,
-            ax=ax1
-        )
+        sns.lineplot(data=df_weekly, x='date', y='changes', marker='o', markersize=8, ax=ax1)
 
         for i, row in df_weekly.iterrows():
-            ax1.text(
-                row['date'],
-                row['changes'] + max(df_weekly['changes']) * 0.05,
-                f"{int(row['changes'])}",
-                ha='center',
-                va='bottom',
-                fontsize=9
+            ax1.text(row['date'], row['changes'] + max(df_weekly['changes']) * 0.05,
+                f"{int(row['changes'])}", ha='center', va='bottom', fontsize=9
             )
 
         ax1.set_title('Зміни в комітах по тижням')
@@ -147,8 +135,7 @@ class CreateDiagram:
         else:
             fig2 = Figure(figsize=(5, 4))
             ax2 = fig2.subplots()
-            ax2.text(0.5, 0.5, 'Немає даних про зміни файлів',
-                     ha='center', va='center')
+            ax2.text(0.5, 0.5, 'Немає даних про зміни файлів', ha='center', va='center')
             figures['Найчастіше змінювані файли'] = fig2
 
         fig3 = Figure(figsize=(5, 4))
@@ -169,18 +156,15 @@ class CreateDiagram:
             bar_width = 0.35
             x = np.arange(len(weekly_data))
 
-            ax3.bar(x - bar_width / 2, weekly_data['additions'], width=bar_width,
-                    color='green', label='Додані рядки')
-            ax3.bar(x + bar_width / 2, weekly_data['deletions'], width=bar_width,
-                    color='red', label='Видалені рядки')
+            ax3.bar(x - bar_width / 2, weekly_data['additions'], width=bar_width, color='green', label='Додані рядки')
+            ax3.bar(x + bar_width / 2, weekly_data['deletions'], width=bar_width, color='red', label='Видалені рядки')
 
             ax3.set_title('Зміни за останні 4 тижні')
             ax3.set_xticks(x)
             ax3.set_xticklabels(weekly_data['week_str'], rotation=45)
             ax3.legend()
         else:
-            ax3.text(0.5, 0.5, 'Немає даних за останні 4 тижні',
-                     ha='center', va='center')
+            ax3.text(0.5, 0.5, 'Немає даних за останні 4 тижні', ha='center', va='center')
 
         fig3.tight_layout()
         figures['Останні 4 тижні'] = fig3

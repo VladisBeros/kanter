@@ -1,6 +1,7 @@
 from tkinter import ttk
 from services.create_diagram import CreateDiagram
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from services.create_pdf_report import CreateReport
 
 class AnalyticsView(ttk.Frame):
     def __init__(self, parent, login, repo):
@@ -29,6 +30,11 @@ class AnalyticsView(ttk.Frame):
             canvas.draw()
             canvas.get_tk_widget().pack(fill='both', expand=True)
             notebook.add(frame, text=title)
+
+        bottom_frame = ttk.Frame(self)
+        bottom_frame.pack(fill='x', side='bottom', pady=10)
+        export_button = ttk.Button(bottom_frame, text="Зберегти звіт як...", command=lambda: CreateReport.export_report(figures, self.login))
+        export_button.pack()
 
     def go_back_to_contributors(self):
         from ui.contributors_view import ContributorsView
